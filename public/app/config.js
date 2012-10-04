@@ -1,3 +1,4 @@
+'use strict';
 /*
  * The configuration file for require.js holds all dependency declarations for
  * the application. This is the first file, that will be loaded by require.js
@@ -19,8 +20,9 @@ require.config({
 
     // Library paths.
     jquery: '../assets/js/libs/jquery',
-    underscore: '../assets/js/libs/underscore',
-    backbone: '../assets/js/libs/backbone'
+    underscore: '../assets/js/libs/lodash',
+    backbone: '../assets/js/libs/backbone',
+    marionette: '../assets/js/libs/backbone.marionette'
   },
 
   /*
@@ -30,10 +32,16 @@ require.config({
    */
   shim: {
 
-    // Backbone depends on both jquery and underscore.
+    // Backbone depends on both jquery and underscore. Backbone is available
+    // as the 'Backbone' object in the window namespace.
     backbone: {
-      deps: ['jquery', 'undescore'],
+      deps: ['jquery', 'underscore'],
       exports: 'Backbone'
+    },
+
+    // marionette.async needs to be loaded after marionette was loaded.
+    'plugins/backbone.marionette.async': {
+      deps: ['marionette']
     }
   }
 
