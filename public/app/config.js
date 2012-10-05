@@ -37,11 +37,6 @@ require.config({
     backbone: {
       deps: ['jquery', 'underscore'],
       exports: 'Backbone'
-    },
-
-    // marionette.async needs to be loaded after marionette was loaded.
-    'plugins/backbone.marionette.async': {
-      deps: ['marionette']
     }
   }
 

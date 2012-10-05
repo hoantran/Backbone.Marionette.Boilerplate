@@ -8,34 +8,53 @@ define([
   'jquery',
   'underscore',
   'backbone',
-  'marionette',
-
-  // Plugins.
-  'plugins/backbone.marionette.async'
+  'marionette'
 
 ], function($, _, Backbone, Marionette) {
   'use strict';
 
-  /*
+  // The app will use the 
+
+  /* =========================================================================
    * The following will make Marionette's template retrieval work with
-   * Marionette.Async. Instead of getting the template from the DOM, it will
-   * make use of require.js to async load template files.
+   * in both development (templates found in html files) and production
+   * environment (templates all compiled AS JST templates into the require.js
+   * file. This will also use JST instead of the Marionette.TemplateCache.
    */
-  Backbone.Marionette.TemplateCache.prototype.loadTemplate = function(templateId, callback){
+  Backbone.Marionette.Renderer.render = function(templateId, data) {
+    var path = 'app/templates/' + templateId + '.html';
 
-    // The templateId is actually the path on the server. Load it using an
-    // ajax get request and render the resulting html.
-    var url = 'app/templates/' + templateId + '.html';
-    $.get(url, function(templateHtml) {
+    // Localize or create a new JavaScript Template object.
+    var JST = window.JST = window.JST || {};
 
-      // Render the template using underscore's basic template rendering.
-      var template = _.template(templateHtml);
-      callback(template);
-    });
+    // Make a blocking ajax call (does not reduce performance in production,
+    // because templates will be contained by the require.js file).
+    if (!JST[path]) {
+      $.ajax({
+        url: App.root + path,
+        async: false
+      }).then(function(templateHtml) {
+        JST[path] = _.template(templateHtml);
+      });
+    }
+
+    if (!JST[path]) {
+      var msg = 'Could not find "' + templateId + '"';
+      var error = new Error(msg);
+      error.name = 'NoTemplateError';
+      throw error;
+    }
+
+    // Call the template function with the data.
+    return JST[path](data);
   };
+  /* ======================================================================== */
 
   // Creates a new Marionette application. 
   var App = new Marionette.Application();
+
+  // Set up basic paths.
+  App.root = '/sites/studentenflohmarkt-v2/public/';
 
   // Add the main region, that will hold the page layout.
   App.addRegions({
@@ -51,7 +70,7 @@ define([
   App.on('initialize:after', function() {
     Backbone.history.start({
       pushState: true,
-      root: '/sites/studentenflohmarkt-v2/public/'
+      root: App.root
     });
   })
 
